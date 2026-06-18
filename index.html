@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Python 期末复习</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --bg: #f2f2f7; --surface: rgba(255,255,255,0.85); --surface2:#fff;
+    --text:#1c1c1e; --text2:#3a3a3c; --text3:#8e8e93;
+    --border:rgba(60,60,67,0.08); --radius:14px; --radius-sm:10px;
+    --blue:#007aff; --green:#34c759; --orange:#ff9500; --red:#ff3b30; --purple:#af52de;
+    --safe-bottom:env(safe-area-inset-bottom,16px);
+  }
+  body {
+    font-family:'Inter',-apple-system,sans-serif;
+    background:var(--bg); color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    padding:0 0 calc(90px + var(--safe-bottom));
+  }
+  .status-bar {
+    background:var(--surface); backdrop-filter:blur(40px) saturate(150%);
+    -webkit-backdrop-filter:blur(40px) saturate(150%);
+    border-bottom:0.5px solid var(--border);
+    padding:14px 20px 10px; position:sticky; top:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .status-bar h1 { font-size:20px; font-weight:700; background:linear-gradient(135deg,#007aff,#5856d6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .status-bar .badge { background:var(--blue); color:#fff; font-size:11px; font-weight:600; padding:3px 12px; border-radius:20px; }
+  .hero { padding:16px 20px 8px; }
+  .hero h2 { font-size:30px; font-weight:800; letter-spacing:-0.5px; line-height:1.2; }
+  .hero h2 span { color:var(--blue); }
+  .hero p { font-size:14px; color:var(--text3); margin-top:2px; }
+
+  /* Score Dashboard */
+  .dash { padding:0 20px 12px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .dash-card {
+    background:var(--surface); backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border-radius:var(--radius); padding:14px 16px;
+    border:0.5px solid var(--border); box-shadow:0 2px 12px rgba(0,0,0,0.04);
+    text-align:center;
+  }
+  .dash-card .num { font-size:28px; font-weight:800; line-height:1.2; }
+  .dash-card .label { font-size:11px; color:var(--text3); font-weight:500; margin-top:2px; }
+  .dash-card.blue .num { color:var(--blue); }
+  .dash-card.green .num { color:var(--green); }
+  .dash-card.orange .num { color:var(--orange); }
+  .dash-card.red .num { color:var(--red); }
+
+  /* Countdown */
+  .cd-row { display:flex; gap:6px; padding:0 20px 12px; }
+  .cd-item { flex:1; background:var(--surface); backdrop-filter:blur(20px); border-radius:10px; padding:8px 0; text-align:center; border:0.5px solid var(--border); }
+  .cd-num { font-size:20px; font-weight:800; color:var(--blue); line-height:1.2; }
+  .cd-label { font-size:10px; font-weight:500; color:var(--text3); }
+
+  /* Progress */
+  .prog-wrap { padding:0 20px 6px; }
+  .prog-hdr { display:flex; justify-content:space-between; font-size:12px; color:var(--text3); margin-bottom:4px; font-weight:500; }
+  .prog-track { height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+  .prog-fill { height:100%; background:linear-gradient(90deg,var(--blue),var(--green)); border-radius:3px; transition:width .6s cubic-bezier(.4,0,.2,1); width:0%; }
+
+  /* Day Picker */
+  .day-bar { padding:0 20px 4px; position:sticky; top:52px; z-index:90; background:var(--bg); }
+  .day-scroll { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding:2px 0; }
+  .day-scroll::-webkit-scrollbar { display:none; }
+  .day-c {
+    flex-shrink:0; padding:7px 14px; border-radius:18px;
+    background:var(--surface); border:0.5px solid var(--border);
+    cursor:pointer; font-size:12px; font-weight:500; color:var(--text3);
+    transition:all .2s; white-space:nowrap; user-select:none;
+  }
+  .day-c.active { background:var(--blue); color:#fff; border-color:var(--blue); box-shadow:0 4px 12px rgba(0,122,255,.3); }
+  .day-c.today::after { content:' 今天'; font-weight:400; opacity:.7; }
+  .day-c .q-count { font-size:10px; opacity:.6; }
+
+  /* Content */
+  .content { padding:0 16px; }
+  .day-sec { display:none; }
+  .day-sec.active { display:block; animation:fade .35s cubic-bezier(.4,0,.2,1); }
+  @keyframes fade { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+  /* Topic Tags */
+  .topic-strip { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:10px; }
+  .topic-tag { font-size:11px; padding:4px 10px; border-radius:8px; background:var(--bg); color:var(--text3); border:0.5px solid var(--border); }
+
+  /* Exercise Card */
+  .ex {
+    background:var(--surface2); border-radius:var(--radius);
+    padding:16px 16px 14px; margin-bottom:10px;
+    border:0.5px solid var(--border); box-shadow:0 2px 12px rgba(0,0,0,0.04);
+  }
+  .ex-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .ex-type {
+    font-size:10px; font-weight:700; padding:2px 10px; border-radius:5px;
+    letter-spacing:.3px; text-transform:uppercase;
+  }
+  .t-choice { background:#e8f2ff; color:var(--blue); }
+  .t-multi { background:#fff3e0; color:var(--orange); }
+  .t-judge { background:#ffe8e6; color:var(--red); }
+  .t-fill { background:#e8f8ed; color:var(--green); }
+  .t-code { background:#f0e6ff; color:var(--purple); }
+
+  .ex-q { font-size:14px; font-weight:500; line-height:1.6; margin-bottom:10px; }
+  .code-inline {
+    font-family:'SF Mono','JetBrains Mono',monospace; font-size:13px;
+    background:var(--bg); padding:1px 6px; border-radius:4px; color:var(--text2);
+  }
+
+  .opts { display:flex; flex-direction:column; gap:5px; margin-bottom:8px; }
+  .opts label {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px; background:var(--bg); border-radius:10px;
+    cursor:pointer; font-size:13.5px; font-weight:400;
+    transition:all .15s; border:1.5px solid transparent;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .opts label:active { transform:scale(.97); }
+  .opts input[type="radio"] {
+    appearance:none; -webkit-appearance:none;
+    width:18px; height:18px; border:2px solid var(--text3); border-radius:50%;
+    flex-shrink:0; transition:all .2s;
+  }
+  .opts input[type="radio"]:checked { border-color:var(--blue); background:var(--blue); box-shadow:inset 0 0 0 3.5px #fff; }
+  .opts label.correct { background:#e8f8ed !important; border-color:var(--green) !important; }
+  .opts label.wrong { background:#ffe8e6 !important; border-color:var(--red) !important; }
+  .opts label.correct-ans { background:#e8f8ed !important; border-color:var(--green) !important; opacity:.7; }
+  .opts input[disabled] { opacity:.5; }
+
+  .ex-input {
+    width:100%; padding:10px 14px; border:1.5px solid var(--border);
+    border-radius:10px; font-size:14px; font-family:'SF Mono',monospace;
+    background:var(--bg); outline:none; transition:all .2s;
+    margin-bottom:8px;
+  }
+  .ex-input:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(0,122,255,.12); }
+  .ex.wrong-ans { border-left:4px solid var(--red); }
+
+  .ex-textarea {
+    width:100%; padding:10px 14px; border:1.5px solid var(--border);
+    border-radius:10px; font-size:13px; font-family:'SF Mono',monospace;
+    background:var(--bg); outline:none; transition:all .2s;
+    resize:vertical; min-height:70px; margin-bottom:8px; line-height:1.5;
+  }
+  .ex-textarea:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(0,122,255,.12); }
+
+  .ex-actions { display:flex; gap:6px; flex-wrap:wrap; }
+  .ex-btn {
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:12px; font-weight:600; padding:6px 14px; border-radius:16px;
+    border:none; cursor:pointer; transition:all .2s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .ex-btn:active { transform:scale(.94); }
+  .ex-btn.primary { background:var(--blue); color:#fff; }
+  .ex-btn.ghost { background:var(--bg); color:var(--text3); }
+  .ex-btn.ghost.showing { background:var(--blue); color:#fff; }
+  .ex-btn.green { background:var(--green); color:#fff; opacity:.7; }
+
+  .fb {
+    font-size:13px; font-weight:600; padding:7px 12px; border-radius:8px;
+    margin-bottom:6px; display:none;
+  }
+  .fb.show { display:block; animation:fade .2s ease; }
+  .fb.correct { background:#e8f8ed; color:#1a5c36; }
+  .fb.wrong { background:#ff3b30; color:#fff; font-weight:700; }
+
+  .ans-box {
+    display:none; margin-top:8px; padding:12px 14px;
+    background:#e8f8ed; border-radius:10px; font-size:13px; line-height:1.5;
+  }
+  .ans-box.show { display:block; animation:fade .2s ease; }
+  .ans-box .al { font-size:10px; font-weight:700; color:var(--green); margin-bottom:3px; text-transform:uppercase; }
+  .ans-box .at { color:#1a5c36; font-weight:500; margin-bottom:4px; }
+  .ans-box .ae { font-size:12px; color:#3a7d4e; border-top:0.5px solid rgba(52,199,89,.2); padding-top:6px; margin-top:4px; }
+
+  .fu-btn {
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:11px; font-weight:600; padding:4px 12px; border-radius:12px;
+    border:1.5px solid var(--purple); background:transparent; color:var(--purple);
+    cursor:pointer; transition:all .2s; margin-top:8px;
+  }
+  .fu-btn:active { transform:scale(.93); }
+  .fu-btn.showing { background:var(--purple); color:#fff; }
+
+  .fu-box {
+    display:none; margin-top:8px; padding:12px 14px;
+    background:#f0e6ff; border-radius:10px; font-size:13px; line-height:1.6;
+    border:0.5px solid rgba(175,82,222,.15);
+  }
+  .fu-box.show { display:block; animation:fade .25s ease; }
+  .fu-box .fl { font-size:10px; font-weight:700; color:var(--purple); margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px; }
+  .fu-box .fc { color:#4a2d6e; }
+  .fu-box .fc code { background:rgba(175,82,222,.12); padding:1px 5px; border-radius:4px; font-family:'SF Mono',monospace; font-size:12px; }
+
+  /* Tab Bar */
+  .tab-bar {
+    position:fixed; bottom:0; left:0; right:0;
+    background:var(--surface); backdrop-filter:blur(40px) saturate(150%);
+    -webkit-backdrop-filter:blur(40px) saturate(150%);
+    border-top:0.5px solid var(--border);
+    padding:6px 16px calc(6px + var(--safe-bottom));
+    display:flex; justify-content:space-around; z-index:200;
+  }
+  .tab-item {
+    display:flex; flex-direction:column; align-items:center; gap:1px;
+    font-size:10px; font-weight:500; color:var(--text3);
+    cursor:pointer; padding:4px 12px; border-radius:8px;
+  }
+  .tab-item .ic { font-size:20px; line-height:1; }
+  .tab-item.active { color:var(--blue); }
+  @media(max-width:380px){ .hero h2{font-size:26px;} }
+  ::-webkit-scrollbar{width:2px;height:2px}
+  ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.1);border-radius:3px}
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <h1>🐍 Python</h1>
+  <span class="badge" id="totalBadge">0题</span>
+</div>
+
+<div class="hero">
+  <h2>期末<span>冲刺</span></h2>
+  <p>郑州西亚斯学院 · 经济与管理学院</p>
+</div>
+
+<div class="dash">
+  <div class="dash-card blue"><div class="num" id="dScore">0</div><div class="label">✅ 答对</div></div>
+  <div class="dash-card red"><div class="num" id="dWrong">0</div><div class="label">❌ 答错</div></div>
+  <div class="dash-card green"><div class="num" id="dRate">0%</div><div class="label">📊 正确率</div></div>
+  <div class="dash-card orange"><div class="num" id="dDone">0</div><div class="label">📝 已做</div></div>
+</div>
+
+<div class="cd-row">
+  <div class="cd-item"><div class="cd-num" id="cdD">-</div><div class="cd-label">天</div></div>
+  <div class="cd-item"><div class="cd-num" id="cdH">-</div><div class="cd-label">小时</div></div>
+  <div class="cd-item"><div class="cd-num" id="cdM">-</div><div class="cd-label">分钟</div></div>
+  <div class="cd-item"><div class="cd-num" id="cdS">-</div><div class="cd-label">秒</div></div>
+</div>
+
+<div class="prog-wrap">
+  <div class="prog-hdr"><span>📖 复习进度</span><span id="progText">0/8天</span></div>
+  <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+</div>
+
+<div class="day-bar">
+  <div class="day-scroll" id="dayScroll"></div>
+</div>
+
+<div class="content" id="content"></div>
+
+<div class="tab-bar">
+  <div class="tab-item active" onclick="document.querySelector('.day-c.active')?.click()"><span class="ic">📖</span><span>复习</span></div>
+  <div class="tab-item" onclick="window.scrollTo({top:0,behavior:'smooth'})"><span class="ic">⬆️</span><span>顶部</span></div>
+</div>
+
+<script>
+const NOW = new Date(), EXAM = new Date(2026,5,22);
+// Score tracking
+let score = JSON.parse(localStorage.getItem('pyScore')||'{"ok":0,"no":0}');
+function saveScore(){ localStorage.setItem('pyScore',JSON.stringify(score)); }
+function updateDash(){
+  const t=score.ok+score.no;
+  document.getElementById('dScore').textContent=score.ok;
+  document.getElementById('dWrong').textContent=score.no;
+  document.getElementById('dRate').textContent=t?Math.round(score.ok/t*100)+'%':'0%';
+  document.getElementById('dDone').textContent=t;
+}
+updateDash();
+
+const daysData = [
+  {d:1,date:'6月14日',ic:'💻',ti:'程序设计基础',cs:['第1章 程序设计基本方法','第2章 Python程序实例解析'],ts:['搭建开发环境','基本语法：缩进/注释/命名','模块导入 import','输入输出 input/print/eval','内置函数 type/len/id'],
+    ex:[
+      {t:'choice',l:'单选',q:'Python源程序文件的扩展名是？',o:['A. .py','B. .python','C. .pyth','D. .pt'],a:'A. .py',e:'.py是Python源文件的标准扩展名，.pyc是编译后的字节码文件。'},
+      {t:'choice',l:'单选',q:'以下哪个是Python正确的注释写法？',o:['A. // 注释','B. # 注释','C. /* 注释 */','D. <!-- 注释 -->'],a:'B. # 注释',e:'Python使用#表示单行注释。//和/**/是C/Java的语法。',f:'<b>各语言注释对比：</b><br>🐍 Python：<code>#</code> 单行，三引号多行<br>☕ Java：<code>//</code> 和 <code>/* */</code><br>🌐 JS：同Java<br><br>⚠️ Python没有<code>//</code>和<code>/* */</code>注释语法！'},
+      {t:'choice',l:'单选',q:'以下合法的Python标识符是？',o:['A. 2name','B. my-name','C. _myName','D. for'],a:'C. _myName',e:'不能以数字开头(A)，不能含连字符(B)，for是保留字(D)。',f:'<b>标识符规则：</b><br>✅ 字母/下划线开头，后跟字母/数字/下划线<br>✅ 大小写敏感<br>❌ 不能以数字开头<br>❌ 不能含连字符-或特殊字符<br>❌ 不能是保留字（for, if, while等）'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">eval("3+5*2")</span> 的结果是？',o:['A. "3+5*2"','B. 13','C. 16','D. 报错'],a:'B. 13',e:'eval()将字符串作为表达式执行，先乘后加得3+10=13。',f:'<b>计算过程：</b><br><code>eval("3+5*2")</code> → 3+(5×2) → 3+10 → 13<br><br>⚠️ <code>*</code>优先级高于<code>+</code><br>加括号：<code>eval("(3+5)*2")</code> → 16<br><br>📌 eval将字符串当作Python代码执行，功能强大但不要对用户输入使用！'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">print(type(3.14))</span> 的输出是？',o:['A. <class \'int\'>','B. <class \'float\'>','C. <class \'str\'>','D. <class \'number\'>'],a:'B. <class \'float\'>',e:'3.14是浮点数，type()返回其类型。Python无number类型。'},
+      {t:'judge',l:'判断',q:'Python是解释型语言，不需要编译即可运行。',o:['正确','错误'],a:'正确',e:'Python是解释型语言，源代码由解释器逐行执行。',f:'<b>解释型 vs 编译型：</b><br>🐍 Python（解释型）：逐行解释，跨平台好，速度较慢<br>⚙️ C/Java（编译型）：需先编译，速度较快<br><br>📌 Python内部流程：.py → .pyc（字节码）→ PVM（虚拟机）执行'},
+      {t:'judge',l:'判断',q:'Python中变量使用前不需要声明类型。',o:['正确','错误'],a:'正确',e:'Python是动态类型语言，变量赋值时自动确定类型。',f:'<b>动态类型 vs 静态类型：</b><br>🐍 Python：<code>x = 10</code>（自动int），<code>x = "hello"</code>（自动str）<br>☕ Java：必须声明类型 <code>int x = 10;</code><br><br>优点：写代码快，灵活<br>缺点：运行时可能才发现类型错误'},
+      {t:'judge',l:'判断',q:'Python 2和Python 3的print语法完全相同。',o:['正确','错误'],a:'错误',e:'Python2的print是语句，Python3的print是函数。'},
+      {t:'judge',l:'判断',q:'Python的缩进是可选的。',o:['正确','错误'],a:'错误',e:'Python的缩进是语法强制要求的，用来表示代码块。',f:'<b>Python缩进规则：</b><br>• 同一代码块必须保持相同缩进<br>• 通常用4个空格（PEP8推荐）<br>• 可以用Tab，但<u>不要混用</u>空格和Tab<br>• 缩进错误会导致 <code>IndentationError</code><br><br>其他语言用花括号{}，Python用缩进！'},
+      {t:'multi',l:'多选',q:'以下哪些是合法标识符？',o:['A. _value','B. 2nd','C. my_var','D. __init__','E. import'],a:'A. _value, C. my_var, D. __init__',e:'不能以数字开头(B错)，import是保留字(E错)。'},
+      {t:'fill',l:'填空',q:'Python中使用____语句导入模块。',a:'import',e:'import是Python中导入模块的关键字。'},
+      {t:'fill',l:'填空',q:'Python语句结束____（需要/不需要）加分号。',a:'不需要',e:'Python不需要分号，换行即语句结束。同一行多语句才用分号。'},
+      {t:'code',l:'编程',q:'输入两个整数，计算并输出它们的和、差、积、商。',a:'a=int(input("请输入第一个整数："))\nb=int(input("请输入第二个整数："))\nprint(f"和：{a+b}")\nprint(f"差：{a-b}")\nprint(f"积：{a*b}")\nprint(f"商：{a/b}")',e:'用int()将输入转为整数，f-string格式化输出。'},
+    ]},
+  {d:2,date:'6月15日',ic:'🔢',ti:'基本数据类型',cs:['第3章 基本数据类型'],ts:['数据类型 int/float/bool/str','运算符 + - * / // % **','字符串索引和切片','字符串方法 split/join/replace','f-string格式化','类型转换 int/float/str'],
+    ex:[
+      {t:'choice',l:'单选',q:'<span class="code-inline">17 // 5</span> 的结果是？',o:['A. 2','B. 3','C. 3.4','D. 2.5'],a:'B. 3',e:'//是整除运算，17÷5=3余2，取整数部分3。经典必考题！',f:'<b>Python除法总结：</b><br><code>/</code> → 17/5 = 3.4（结果总是浮点）<br><code>//</code> → 17//5 = 3（向下取整，不是四舍五入）<br><code>%</code> → 17%5 = 2（余数）<br><code>divmod(17,5)</code> → (3, 2)<br><br>⚠️ 负数：-17//5 = -4（向负无穷取整）'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">17 % 5</span> 的结果是？',o:['A. 2','B. 3','C. 0','D. 5'],a:'A. 2',e:'%是取余运算，17÷5=3余2，所以17%5=2。'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">2 ** 3 ** 2</span> 的结果是？',o:['A. 64','B. 512','C. 36','D. 12'],a:'B. 512',e:'**是右结合：2**3**2 = 2**(3**2) = 2**9 = 512。',f:'<b>幂运算结合性：</b><br><code>2 ** 3 ** 2</code><br>= <code>2 ** (3 ** 2)</code> ← 从右到左<br>= <code>2 ** 9</code> = <b>512</b><br><br>⚠️ <b>不是</b> (2³)² = 8² = 64<br>📌 看到连续**，从最右边开始算！'},
+      {t:'choice',l:'单选',q:'s="Hello World"，<span class="code-inline">s[0:5]</span> 的结果是？',o:['A. "World"','B. "Hello"','C. "Hello "','D. "ello"'],a:'B. "Hello"',e:'切片s[0:5]取索引0~4（左闭右开），即前5个字符。',f:'<b>字符串切片详解：</b><br><code>s = "Hello World"</code><br>索引：H(0)e(1)l(2)l(3)o(4)空格(5)W(6)o(7)r(8)l(9)d(10)<br><br><code>s[0:5]</code> → "Hello"<br><code>s[6:]</code> → "World"<br><code>s[::-1]</code> → "dlroW olleH"（反转）<br><br>🎯 公式：<code>s[start:end:step]</code>，含start不含end！'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">"Hello World".split()</span> 返回？',o:['A. ["Hello","World"]','B. "Hello,World"','C. ["Hello World"]','D. 报错'],a:'A. ["Hello","World"]',e:'split()默认按空格分割字符串，返回列表。'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">"{:.2f}".format(3.14159)</span> 得？',o:['A. "3.14"','B. "3.14159"','C. "3.1"','D. "3.142"'],a:'A. "3.14"',e:'{:.2f}保留2位小数，四舍五入得"3.14"。'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">chr(65)</span> 的结果是？',o:['A. "A"','B. 65','C. "a"','D. 97'],a:'A. "A"',e:'chr(65)将ASCII码65转为字符"A"。ord("A")=65是逆操作。'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">round(3.14159, 3)</span> 的结果是？',o:['A. 3.14','B. 3.141','C. 3.142','D. 3.1416'],a:'C. 3.142',e:'round(x,n)四舍五入保留n位小数。3.14159保留3位，第4位是5进位得3.142。'},
+      {t:'judge',l:'判断',q:'<span class="code-inline">type("123")==type(123)</span> 结果为True。',o:['正确','错误'],a:'错误',e:'type("123")是str，type(123)是int，两者不相等。'},
+      {t:'judge',l:'判断',q:'<span class="code-inline">print(0.1+0.2==0.3)</span> 结果是True。',o:['正确','错误'],a:'错误',e:'浮点数精度问题！0.1+0.2=0.30000000000000004≠0.3。高频易错！',f:'<b>为什么？</b><br>0.1和0.2在二进制中是无限循环小数，无法精确存储。<br><br><b>解决方案：</b><br>• <code>round(0.1+0.2, 1) == 0.3</code> ✅<br>• <code>abs(0.1+0.2 - 0.3) < 1e-9</code> ✅<br><br>⚠️ 这不是Python的Bug，所有语言都这样！'},
+      {t:'judge',l:'判断',q:'字符串在Python中是不可变类型。',o:['正确','错误'],a:'正确',e:'字符串不可变，s[0]="a"会报错。需要创建新字符串。'},
+      {t:'fill',l:'填空',q:'<span class="code-inline">round(3.14159, 2)</span> 的结果是____。',a:'3.14',e:'round(x,n)四舍五入保留n位小数。'},
+      {t:'fill',l:'填空',q:'<span class="code-inline">int("1010", 2)</span> 的结果是____。',a:'10',e:'将二进制"1010"转为十进制：1×2³+1×2¹=10。'},
+      {t:'code',l:'编程',q:'输入圆的半径，用math库计算面积（保留2位小数）。',a:'import math\nr=float(input("请输入半径："))\narea=math.pi*r**2\nprint(f"面积：{area:.2f}")',e:'math.pi获取π值，r**2计算半径平方。'},
+    ]},
+  {d:3,date:'6月16日',ic:'🔄',ti:'控制结构',cs:['第4章 程序的控制结构'],ts:['if/elif/else分支结构','for循环 range()','while循环','break和continue','异常处理 try/except'],
+    ex:[
+      {t:'choice',l:'单选',q:'<span class="code-inline">x=5; if x>3: print("A") elif x>1: print("B")</span> 输出？',o:['A. A','B. B','C. A\\nB','D. 无输出'],a:'A. A',e:'if-elif-else互斥，满足x>3后输出A，不再判断elif。',f:'<b>执行流程：</b><br><pre>if 条件1:    ← True则执行，跳过后续<br>elif 条件2:  ← 条件1为False才判断<br>else:       ← 以上全False才执行</pre><br><br>⚠️ 多个if各自独立判断；if-elif互斥只执行一个！'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">range(2, 10, 3)</span> 生成的序列是？',o:['A. [2,5,8]','B. [2,5,8,11]','C. [3,6,9]','D. [2,4,6,8]'],a:'A. [2,5,8]',e:'range(2,10,3)：从2开始，步长3，不超过10。经典考题！',f:'<b>range三种用法：</b><br><code>range(n)</code> → 0到n-1<br><code>range(s,e)</code> → s到e-1<br><code>range(s,e,step)</code> → s到e-1，步长step<br><br>例：<br><code>range(5)</code> → [0,1,2,3,4]<br><code>range(2,6)</code> → [2,3,4,5]<br><code>range(2,10,3)</code> → [2,5,8]'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">for i in range(5):\n  if i==3: break\n  print(i,end="")</span> 输出？',o:['A. 01234','B. 012','C. 0123','D. 0124'],a:'B. 012',e:'i=3时break终止循环，只输出0,1,2（break前没打印3）。'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">x=10; y=20; z=x if x>y else y; print(z)</span>',o:['A. 10','B. 20','C. True','D. False'],a:'B. 20',e:'条件表达式：x>y为False，取else的值y=20。'},
+      {t:'judge',l:'判断',q:'break终止整个循环，continue跳过本次循环剩余语句。',o:['正确','错误'],a:'正确',e:'break跳整个循环；continue跳过本次循环剩余部分。'},
+      {t:'judge',l:'判断',q:'finally子句无论是否发生异常都会执行。',o:['正确','错误'],a:'正确',e:'finally中的代码一定会执行，常用于释放资源。',f:'<b>完整异常处理结构：</b><br><pre>try:       ← 可能出错的代码<br>except:    ← 出错时执行<br>else:      ← 没出错时执行<br>finally:   ← 无论对错都执行</pre><br><br>即使try里有return，finally也会执行！'},
+      {t:'judge',l:'判断',q:'Python中while循环条件可以是任意类型的值。',o:['正确','错误'],a:'正确',e:'非零数字、非空字符串/列表等为True；0、""、None为False。'},
+      {t:'multi',l:'多选',q:'以下哪些是Python异常处理关键字？',o:['A. try','B. catch','C. except','D. finally','E. throw'],a:'A. try, C. except, D. finally',e:'Python用try-except-else-finally，无catch和throw。'},
+      {t:'fill',l:'填空',q:'<span class="code-inline">for i in range(5):</span> 循环执行____次。',a:'5',e:'range(5)产生0,1,2,3,4共5个数，循环5次。'},
+      {t:'code',l:'编程',q:'判断年份是否为闰年。',a:'year=int(input("请输入年份："))\nif (year%4==0 and year%100!=0) or year%400==0:\n    print(f"{year}是闰年")\nelse:\n    print(f"{year}不是闰年")',e:'闰年条件：被4整除且不被100整除，或能被400整除。'},
+      {t:'code',l:'编程',q:'计算1-100之间所有奇数的和。',a:'total=0\nfor i in range(1,101):\n    if i%2==1:\n        total += i\nprint(total)\n# 或直接：print(sum(range(1,101,2)))',e:'range(1,101,2)一步到位，或循环筛选奇数。'},
+    ]},
+  {d:4,date:'6月17日',ic:'⚙️',ti:'函数复用',cs:['第5章 函数和代码复用'],ts:['函数定义 def','参数传递 位置/默认/关键字','局部变量与全局变量','lambda匿名函数','递归函数'],
+    ex:[
+      {t:'choice',l:'单选',q:'<span class="code-inline">def f(a,b=5): return a+b\nprint(f(3))</span> 输出？',o:['A. 3','B. 5','C. 8','D. 报错'],a:'C. 8',e:'b有默认值5，f(3)中a=3,b=5，返回8。',f:'<b>参数类型：</b><br>① 位置参数：按顺序<br>② 默认参数：<code>def f(a,b=5)</code><br>③ 关键字参数：<code>f(b=10,a=3)</code><br>④ *args：多个位置参数<br>⑤ **kwargs：多个关键字参数'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">x=10\ndef f(): x=20\nf(); print(x)</span> 输出？',o:['A. 20','B. 10','C. 20 10','D. 报错'],a:'B. 10',e:'函数内的x=20是局部变量，不影响全局x=10。'},
+      {t:'choice',l:'单选',q:'<span style="color:red">★高频</span> <span class="code-inline">def f(a,L=[]): L.append(a); return L\nprint(f(1));print(f(2))</span>',o:['A. [1] [2]','B. [1] [1,2]','C. [1] [2,2]','D. 报错'],a:'B. [1] [1,2]',e:'默认参数L=[]定义时只创建一次！两次调用共享同一列表。必考题！',f:'<b>面试必考！</b><br><code>def f(a, L=[]):</code><br>第一次：L=[] → L=[1]<br>第二次：L=[1] → L=[1,2] ← 同一个列表！<br><br><b>修复：</b><br><code>def f(a, L=None):</code><br><code>&nbsp;&nbsp;if L is None: L=[]</code>'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">lambda x,y: x+y</span> 等价于？',o:['A. def f(x,y): x+y','B. def f(x,y): return x+y','C. def f(): return x+y','D. def f(x,y): print(x+y)'],a:'B. def f(x,y): return x+y',e:'lambda必须有返回值（表达式结果），等价于带return的函数。'},
+      {t:'judge',l:'判断',q:'函数中return不带值时，函数返回None。',o:['正确','错误'],a:'正确',e:'无return、return不带值或return None都返回None。'},
+      {t:'judge',l:'判断',q:'Python函数可返回多个值，自动打包成列表。',o:['正确','错误'],a:'错误',e:'多个返回值自动打包成元组(tuple)，不是列表。'},
+      {t:'judge',l:'判断',q:'lambda函数可以包含多条语句。',o:['正确','错误'],a:'错误',e:'lambda只能包含一个表达式，不能包含语句。'},
+      {t:'fill',l:'填空',q:'函数内修改全局变量使用____关键字。',a:'global',e:'global声明后，函数内对该变量的操作影响全局变量。'},
+      {t:'fill',l:'填空',q:'<span class="code-inline">(lambda x: x*2)(5)</span> 的结果是____。',a:'10',e:'定义lambda并立即调用。x=5，返回5×2=10。'},
+      {t:'code',l:'编程',q:'递归函数计算n的阶乘。',a:'def factorial(n):\n    if n<=1: return 1\n    return n*factorial(n-1)\nprint(factorial(5))',e:'递归基：n<=1返回1。递归步：n!=n×(n-1)!。'},
+    ]},
+  {d:5,date:'6月18日',ic:'📦',ti:'组合数据',cs:['第6章 组合数据类型'],ts:['列表创建/索引/切片','列表方法 append/pop/sort','元组与拆包','字典 keys/values/items/get','集合 &交集 |并集 -差集'],
+    ex:[
+      {t:'choice',l:'单选',q:'以下关于列表和元组正确的是？',o:['A. 两者都可变','B. 列表可变 元组不可变','C. 列表不可变 元组可变','D. 两者都不可变'],a:'B. 列表可变 元组不可变',e:'列表可增删改，元组创建后不可修改。核心区别！',f:'<b>list vs tuple：</b><br>列表[]：可变，可增删改<br>元组()：不可变，创建后不能修改<br><br>📌 单元素元组：<code>t = (1,)</code> 逗号不能省！'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">[x**2 for x in range(5)]</span> 结果是？',o:['A. [0,1,4,9,16]','B. [1,4,9,16,25]','C. [0,1,2,3,4]','D. [0,2,4,6,8]'],a:'A. [0,1,4,9,16]',e:'推导式对0~4分别求平方：0,1,4,9,16。'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">d={"a":1,"b":2}; d.get("c",0)</span> 返回？',o:['A. 报错','B. None','C. 0','D. "c"'],a:'C. 0',e:'get(key,default)安全获取，键不存在返回默认值0。',f:'<b>字典取值方式：</b><br><code>d[key]</code> ❌ 无此键报错<br><code>d.get(key)</code> ✅ 无此键返回None<br><code>d.get(key, 0)</code> ✅ 无此键返回0<br><code>d.setdefault(key, v)</code> ✅ 无此键就设置默认值'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">{1,2,3} & {2,3,4}</span> 结果是？',o:['A. {1,2,3,4}','B. {2,3}','C. {1,4}','D. 报错'],a:'B. {2,3}',e:'&是交集，返回共有元素。{1,2,3}∩{2,3,4}={2,3}。',f:'<b>集合运算：</b><br><code>A | B</code> → 并集 {1,2,3,4}<br><code>A & B</code> → 交集 {2,3}<br><code>A - B</code> → 差集 {1}<br><code>A ^ B</code> → 对称差 {1,4}'},
+      {t:'judge',l:'判断',q:'字典的键必须是不可变类型。',o:['正确','错误'],a:'正确',e:'字典键必须可哈希（不可变类型）。列表/字典不能作为键。'},
+      {t:'judge',l:'判断',q:'集合中的元素自动去重。',o:['正确','错误'],a:'正确',e:'集合元素互异，重复元素自动去重。可用set(list)去重。'},
+      {t:'judge',l:'判断',q:'pop()默认删除并返回列表最后一个元素。',o:['正确','错误'],a:'正确',e:'pop()删除最后一个；pop(i)删除指定索引处元素。'},
+      {t:'multi',l:'多选',q:'以下哪些是字典方法？',o:['A. .keys()','B. .values()','C. .items()','D. .append()','E. .get()'],a:'A. .keys(), B. .values(), C. .items(), E. .get()',e:'append()是列表的方法，字典没有。'},
+      {t:'fill',l:'填空',q:'删除列表末尾元素的方法：lst.____()',a:'pop',e:'pop()删除并返回最后一个元素。pop(i)删除索引i处元素。'},
+      {t:'fill',l:'填空',q:'<span class="code-inline">{1,2,3} - {2,3,4}</span> 结果是____。',a:'{1}',e:'差集：{1,2,3}中有而{2,3,4}中没有的元素，即{1}。'},
+      {t:'code',l:'编程',q:'输入5个整数，输出最大值、最小值、平均值。',a:'nums=[]\nfor i in range(5):\n    n=int(input(f"请输入第{i+1}个数："))\n    nums.append(n)\nprint(f"最大值：{max(nums)}")\nprint(f"最小值：{min(nums)}")\nprint(f"平均值：{sum(nums)/len(nums):.2f}")',e:'综合考查循环、列表操作、max()/min()/sum()。'},
+    ]},
+  {d:6,date:'6月19日',ic:'📁',ti:'文件操作',cs:['第7章 文件和数据格式化'],ts:['打开文件 open()','读写 read/write','with语句','CSV文件处理','JSON格式'],
+    ex:[
+      {t:'choice',l:'单选',q:'会覆盖原文件内容的打开模式是？',o:['A. "r"','B. "w"','C. "a"','D. "x"'],a:'B. "w"',e:'"w"覆盖写入；"r"只读；"a"追加；"x"新建（文件存在报错）。'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">f.readlines()</span> 返回什么？',o:['A. 字符串','B. 列表(每行一个元素)','C. 元组','D. 生成器'],a:'B. 列表(每行一个元素)',e:'readlines()读取所有行，返回列表，每行含换行符\\n。'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">json.loads(\'{"a":1}\')</span> 返回？',o:['A. 字符串 \'{"a":1}\'','B. 字典 {\'a\':1}','C. JSON对象','D. 报错'],a:'B. 字典 {\'a\':1}',e:'loads()将JSON字符串解析为Python对象（字典）。'},
+      {t:'judge',l:'判断',q:'with open() as f: 不需要手动close()。',o:['正确','错误'],a:'正确',e:'with语句自动关闭文件，即使异常也正确关闭。'},
+      {t:'judge',l:'判断',q:'CSV文件是纯文本格式可用记事本打开。',o:['正确','错误'],a:'正确',e:'CSV（逗号分隔值）是纯文本格式，任何文本编辑器可打开。'},
+      {t:'multi',l:'多选',q:'以下哪些是合法文件打开模式？',o:['A. "r"','B. "w"','C. "rw"','D. "a"','E. "x"'],a:'A. "r", B. "w", D. "a", E. "x"',e:'"rw"不是有效模式。"r+"才是读写模式。'},
+      {t:'fill',l:'填空',q:'Python对象转JSON字符串的函数：json.____()',a:'dumps',e:'dumps序列化为JSON字符串。dump()直接写入文件。'},
+      {t:'fill',l:'填空',q:'CSV写入一行数据用 writer.____()。',a:'writerow',e:'writerow()写一行，writerows()写多行。'},
+      {t:'code',l:'编程',q:'用with语句创建文件写入1-10再读取输出。',a:'with open("data.txt","w",encoding="utf-8") as f:\n    for i in range(1,11):\n        f.write(f"{i}\\n")\nwith open("data.txt","r",encoding="utf-8") as f:\n    print(f.read())',e:'with语句自动关闭文件。写入时加\\n换行。'},
+    ]},
+  {d:7,date:'6月20日',ic:'📈',ti:'可视化和方法论',cs:['第8章 程序设计方法论','第9章 科学计算和可视化'],ts:['计算思维：抽象+自动化','pyinstaller打包exe','numpy数组','matplotlib绘图'],
+    ex:[
+      {t:'choice',l:'单选',q:'pyinstaller打包为单个exe的参数是？',o:['A. -F','B. -D','C. -c','D. -w'],a:'A. -F',e:'-F生成单个exe；-D生成文件夹；-c控制台模式；-w无控制台。'},
+      {t:'choice',l:'单选',q:'matplotlib绘制折线图的函数是？',o:['A. plt.bar()','B. plt.plot()','C. plt.pie()','D. plt.scatter()'],a:'B. plt.plot()',e:'plot()折线图；bar()柱状图；pie()饼图；scatter()散点图。'},
+      {t:'choice',l:'单选',q:'numpy数组的shape表示什么？',o:['A. 元素总数','B. 形状(各维度大小)','C. 数据类型','D. 维度数'],a:'B. 形状(各维度大小)',e:'shape返回各维度大小如(3,4)。size元素总数，ndim维度数。'},
+      {t:'choice',l:'单选',q:'计算思维的核心是？',o:['A. 数据结构和算法','B. 抽象和自动化','C. 面向对象','D. 函数式编程'],a:'B. 抽象和自动化',e:'计算思维（Computational Thinking）的两大核心：抽象和自动化。'},
+      {t:'judge',l:'判断',q:'-F 表示生成单个可执行文件。',o:['正确','错误'],a:'正确',e:'pyinstaller -F 打包为单个exe，方便分发。'},
+      {t:'judge',l:'判断',q:'dtype表示数组的形状。',o:['正确','错误'],a:'错误',e:'dtype表示元素数据类型。shape才是形状，别混淆！'},
+      {t:'multi',l:'多选',q:'以下哪些是matplotlib绘图函数？',o:['A. plt.plot()','B. plt.bar()','C. plt.pie()','D. plt.graph()','E. plt.scatter()'],a:'A. plt.plot(), B. plt.bar(), C. plt.pie(), E. plt.scatter()',e:'plt没有graph()函数。'},
+      {t:'fill',l:'填空',q:'numpy创建全0数组使用 np.____()。',a:'zeros',e:'np.zeros((3,4))创建3行4列全0数组。ones()全1。'},
+      {t:'code',l:'编程',q:'用matplotlib绘制折线图。',a:'import matplotlib.pyplot as plt\nx=[1,2,3,4,5]\ny=[1,4,9,16,25]\nplt.plot(x,y,marker="o")\nplt.title("平方函数")\nplt.xlabel("X")\nplt.ylabel("Y")\nplt.show()',e:'plot()绘制折线，marker="o"加圆点标记。'},
+    ]},
+  {d:8,date:'6月21日',ic:'🏆',ti:'综合模拟',cs:['第1-9章 综合'],ts:['🔥 高频易错汇总','📌 核心代码模板','⚠️ 考试陷阱','💪 调整心态自信应考'],
+    ex:[
+      {t:'choice',l:'单选',q:'<span style="color:red">★高频</span> <span class="code-inline">a=[1,2,3]; b=a; b.append(4); print(a)</span>',o:['A. [1,2,3]','B. [1,2,3,4]','C. [4]','D. 报错'],a:'B. [1,2,3,4]',e:'b=a是引用赋值，指向同一列表。b变a也变。常考！',f:'<b>赋值 vs 拷贝：</b><br><code>b = a</code> → 引用赋值，a和b共享对象<br><code>b = a.copy()</code> → 浅拷贝，独立外层<br><code>import copy; b = copy.deepcopy(a)</code> → 深拷贝，完全独立'},
+      {t:'choice',l:'单选',q:'<span style="color:red">★高频</span> <span class="code-inline">print(0.1+0.2==0.3)</span> 输出？',o:['A. True','B. False','C. 报错','D. None'],a:'B. False',e:'浮点数精度问题！0.1+0.2=0.30000000000000004≠0.3。必考！'},
+      {t:'choice',l:'单选',q:'<span class="code-inline">list(range(10))[-5:]</span> 结果是？',o:['A. [0,1,2,3,4]','B. [5,6,7,8,9]','C. [4,5,6,7,8]','D. [5,6,7,8,9,10]'],a:'B. [5,6,7,8,9]',e:'range(10)生成0-9，[-5:]取最后5个元素。负索引常考！'},
+      {t:'choice',l:'单选',q:'以下不能创建集合的是？',o:['A. {1,2,3}','B. set([1,2,3])','C. set()','D. {}'],a:'D. {}',e:'{}创建空字典！空集合用set()。超级易错！',f:'<b>{} vs set()：</b><br><code>{}</code> → 空字典 ❌<br><code>set()</code> → 空集合 ✅<br><code>{1,2,3}</code> → 集合（有元素时）✅<br><br>⚠️ 考试最喜欢考这个区别！'},
+      {t:'judge',l:'判断',q:'<span class="code-inline">is</span> 和 <span class="code-inline">==</span> 等价。',o:['正确','错误'],a:'错误',e:'is判断对象身份（内存地址），==判断值。a=[1];b=[1]，a==b为True但a is b为False。',f:'<b>== vs is：</b><br><code>==</code> → 值相等（内容相同）<br><code>is</code> → 是同一个对象（内存地址相同）<br><br><code>a=[1];b=[1]</code><br><code>a==b</code> → True ✅ 值一样<br><code>a is b</code> → False ❌ 不是同一个对象<br><br>📌 判断None用<code>is None</code>，不用<code>== None</code>！'},
+      {t:'judge',l:'判断',q:'<span class="code-inline">a,b=b,a</span> 可交换a和b的值。',o:['正确','错误'],a:'正确',e:'Python元组拆包特性，一行代码交换两个变量的值。'},
+      {t:'judge',l:'判断',q:'所有数据类型都可作为字典的键。',o:['正确','错误'],a:'错误',e:'只有不可变类型（字符串、数字、元组）能作为键。列表不行。'},
+      {t:'multi',l:'多选',q:'以下关于可变/不可变正确的有？',o:['A. 列表可变','B. 元组不可变','C. 字符串可变','D. 字典可变'],a:'A. 列表可变, B. 元组不可变, D. 字典可变',e:'字符串不可变！s[0]="a"会报错。'},
+      {t:'fill',l:'填空',q:'<span class="code-inline">sorted([3,1,2])</span> 返回____。',a:'[1, 2, 3]',e:'sorted()返回新列表，不修改原列表。sort()原地修改。'},
+      {t:'code',l:'编程',q:'【综合】输入10个整数，去重后降序排列。',a:'nums=[int(input(f"请输入第{i+1}个数：")) for i in range(10)]\nunique=sorted(set(nums), reverse=True)\nprint("去重降序：",unique)',e:'set()去重，sorted(..., reverse=True)降序。一行搞定！'},
+      {t:'code',l:'编程',q:'【综合】判断回文字符串。',a:'def is_palindrome(s):\n    return s==s[::-1]\nprint(is_palindrome("radar"))  # True\nprint(is_palindrome("hello"))  # False',e:'s[::-1]反转字符串，与原串相等即为回文。一行代码！'},
+    ]},
+];
+
+// ===== RENDER =====
+let totalQ = 0;
+daysData.forEach(d=>totalQ+=d.ex.length);
+document.getElementById('totalBadge').textContent=totalQ+'题';
+
+// Countdown
+function upCD(){
+  const d=EXAM-NOW;
+  if(d<=0){['cdD','cdH','cdM','cdS'].forEach(i=>document.getElementById(i).textContent='0');return;}
+  document.getElementById('cdD').textContent=Math.floor(d/86400000);
+  document.getElementById('cdH').textContent=String(Math.floor((d%86400000)/3600000)).padStart(2,'0');
+  document.getElementById('cdM').textContent=String(Math.floor((d%3600000)/60000)).padStart(2,'0');
+  document.getElementById('cdS').textContent=String(Math.floor((d%60000)/1000)).padStart(2,'0');
+}
+upCD();setInterval(upCD,1000);
+
+// Day Picker
+const sc=document.getElementById('dayScroll');
+let sh='';
+daysData.forEach((d,i)=>{
+  const a=i===0?'active':'';
+  const t=d.date===`6月${NOW.getDate()}日`?'today':'';
+  sh+=`<div class="day-c ${a} ${t}" data-i="${i}">${d.ic} 第${d.d}天 <span class="q-count">${d.ex.length}题</span></div>`;
+});
+sc.innerHTML=sh;
+
+// Content
+const ct=document.getElementById('content');
+let ch='';
+daysData.forEach((d,di)=>{
+  const a=di===0?'active':'';
+  ch+=`<div class="day-sec ${a}" data-i="${di}">`;
+  // Topic tags
+  ch+=`<div class="topic-strip">${d.cs.map(c=>`<span class="topic-tag">${c}</span>`).join('')}</div>`;
+  // Exercises
+  d.ex.forEach((ex,ei)=>{
+    const id=`e${di}-${ei}`;
+    const tc=`t-${ex.t==='choice'?'choice':ex.t==='multi'?'multi':ex.t==='judge'?'judge':ex.t==='fill'?'fill':'code'}`;
+    const isAuto=ex.t==='choice'||ex.t==='judge';
+    ch+=`<div class="ex">
+      <div class="ex-head"><span class="ex-type ${tc}">${ex.l}</span></div>
+      <div class="ex-q">${ex.q}</div>`;
+    if(ex.o){
+      ch+=`<div class="opts" data-id="${id}" data-ans="${ex.a.replace(/"/g,'&quot;')}">`;
+      ex.o.forEach((opt,oi)=>ch+=`<label${isAuto?` onclick="cR('${id}',this)"`:''}><input type="radio" name="${id}" value="${opt}"><span>${opt}</span></label>`);
+      ch+=`</div>`;
+      if(!isAuto) ch+=`<div class="ex-actions"><button class="ex-btn primary" onclick="sM('${id}')">✓ 提交</button></div>`;
+    } else if(ex.t==='fill'){
+      ch+=`<input class="ex-input" id="i${id}" placeholder="输入答案..." spellcheck="false">
+      <div class="ex-actions"><button class="ex-btn primary" onclick="sF('${id}')">✓ 提交</button></div>`;
+    } else if(ex.t==='code'){
+      ch+=`<textarea class="ex-textarea" id="c${id}" placeholder="在此编写代码..." spellcheck="false"></textarea>
+      <div class="ex-actions"><button class="ex-btn primary" onclick="sC('${id}')">✓ 提交</button></div>`;
+    }
+    ch+=`<div class="fb" id="fb${id}"></div>
+      <div class="ans-box" id="${id}"><div class="al">✅ 答案</div><div class="at">${ex.a}</div><div class="ae">💡 ${ex.e}</div>
+      <button class="fu-btn" onclick="fu('${id}')">🤔 追问详解</button>
+      <div class="fu-box" id="fu${id}"><div class="fl">📖 详细解析</div><div class="fc">${ex.f || genFu(ex)}</div></div>
+      </div>
+    </div>`;
+  });
+  ch+=`</div>`;
+});
+ct.innerHTML=ch;
+
+// Progress
+function upP(){
+  let done=0;
+  daysData.forEach(d=>{const m=parseInt(d.date.match(/(\d+)月/)[1])-1,dd=parseInt(d.date.match(/(\d+)日/)[1]);if(new Date(2026,m,dd)<NOW)done++;});
+  const p=Math.round(done/daysData.length*100);
+  document.getElementById('progFill').style.width=p+'%';
+  document.getElementById('progText').textContent=`${done}/${daysData.length}天 (${p}%)`;
+}
+upP();
+
+// Events
+document.querySelectorAll('.day-c').forEach(c=>{
+  c.addEventListener('click',function(){
+    const i=parseInt(this.dataset.i);
+    document.querySelectorAll('.day-c').forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');
+    document.querySelectorAll('.day-sec').forEach(x=>x.classList.remove('active'));
+    document.querySelector(`.day-sec[data-i="${i}"]`).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+});
+
+// Auto today
+const ts=`6月${NOW.getDate()}日`;
+const ti=daysData.findIndex(d=>d.date===ts);
+if(ti>0) document.querySelectorAll('.day-c')[ti]?.click();
+
+// ===== CHECKING =====
+function cR(id,label){
+  const div=label.closest('.opts');
+  const ans=div.dataset.ans;
+  const sel=label.querySelector('span').textContent.trim();
+  const fb=document.getElementById('fb'+id);
+  const ok=sel===ans;
+  div.querySelectorAll('input').forEach(r=>r.disabled=true);
+  div.querySelectorAll('label').forEach(l=>{
+    if(l.querySelector('span').textContent.trim()===ans) l.classList.add('correct-ans');
+  });
+  if(ok){
+    label.classList.add('correct');
+    label.closest('.ex')?.classList.remove('wrong-ans');
+    fb.textContent='✅ 回答正确！';fb.className='fb show correct';score.ok++;
+  } else {
+    label.classList.add('wrong');
+    label.closest('.ex')?.classList.add('wrong-ans');
+    fb.textContent='❌ 回答错误';fb.className='fb show wrong';score.no++;
+  }
+  saveScore();updateDash();
+  const ab=document.getElementById(id);
+  if(ab){ab.classList.add('show');
+    const btn=ab.previousElementSibling?.querySelector?.('.ex-btn');
+  }
+}
+function sM(id){
+  const div=document.querySelector(`.opts[data-id="${id}"]`);
+  const ans=div.dataset.ans;
+  const fb=document.getElementById('fb'+id);
+  const checked=div.querySelectorAll('input:checked');
+  if(!checked.length){fb.textContent='⚠️ 请先选择选项';fb.className='fb show wrong';return;}
+  const vals=[];checked.forEach(r=>vals.push(r.value.trim()));
+  div.querySelectorAll('input').forEach(r=>r.disabled=true);
+  const parts=ans.split(',').map(s=>s.trim());
+  div.querySelectorAll('label').forEach(l=>{
+    if(parts.includes(l.querySelector('span').textContent.trim())) l.classList.add('correct-ans');
+  });
+  const user=vals.join(', ');
+  if(user===ans){
+    fb.textContent='✅ 回答正确！';fb.className='fb show correct';score.ok++;
+    div.closest('.ex')?.classList.remove('wrong-ans');
+  } else {
+    fb.textContent='❌ 回答错误，正确答案：'+ans;fb.className='fb show wrong';score.no++;
+    div.closest('.ex')?.classList.add('wrong-ans');
+  }
+  saveScore();updateDash();
+  const ab=document.getElementById(id);
+  if(ab)ab.classList.add('show');
+}
+function sF(id){
+  const inp=document.getElementById('i'+id);
+  const ab=document.getElementById(id);
+  const at=ab?.querySelector('.at')?.textContent?.trim()||'';
+  const fb=document.getElementById('fb'+id);
+  const u=inp.value.trim();
+  if(!u){fb.textContent='⚠️ 请输入答案再提交';fb.className='fb show wrong';return;}
+  if(u===at){
+    fb.textContent='✅ 回答正确！';fb.className='fb show correct';
+    inp.style.borderColor='var(--green)';score.ok++;
+    inp.closest('.ex')?.classList.remove('wrong-ans');
+  } else {
+    fb.textContent='❌ 回答错误！正确答案：「'+at+'」\n你的答案：「'+u+'」';
+    fb.className='fb show wrong';
+    inp.style.borderColor='var(--red)';inp.style.borderWidth='2.5px';
+    inp.closest('.ex')?.classList.add('wrong-ans');
+    score.no++;
+  }
+  inp.disabled=true; saveScore();updateDash();
+  if(ab)ab.classList.add('show');
+}
+function sC(id){
+  const ta=document.getElementById('c'+id);
+  const ab=document.getElementById(id);
+  const at=ab?.querySelector('.at')?.textContent?.trim()||'';
+  const fb=document.getElementById('fb'+id);
+  if(!ta.value.trim()){fb.textContent='⚠️ 请编写代码再提交';fb.className='fb show wrong';return;}
+  fb.className='fb show wrong';
+  fb.style.background='#ff9500';
+  fb.style.color='#fff';
+  fb.textContent='📤 已提交！请对照下方参考答案，检查你的代码是否正确';
+  ta.disabled=true;
+  if(ab)ab.classList.add('show');
+}
+function fu(id){
+  const box=document.getElementById('fu'+id);
+  if(!box) return;
+  box.classList.toggle('show');
+  const btn=box.previousElementSibling;
+  if(box.classList.contains('show')){btn.textContent='🙈 收起详解';btn.classList.add('showing');}
+  else{btn.textContent='🤔 追问详解';btn.classList.remove('showing');}
+}
+// Auto-generate follow-up for exercises without pre-written f field
+function genFu(ex){
+  const t=ex.t, q=ex.q.replace(/<[^>]*>/g,''), a=ex.a, e=ex.e.replace(/<[^>]*>/g,'');
+  if(t==='choice'||t==='judge'){
+    return '📌 <b>考点：</b>'+e+'<br><br>💡 <b>解题思路：</b>理解概念本质，不要死记硬背。<br><br>⚠️ <b>易错点：</b>这类题容易混淆相似概念，注意区分。<br><br>📝 <b>建议：</b>如果还不理解，建议翻看教材对应章节。';
+  } else if(t==='multi'){
+    const parts=a.split(',').length;
+    return '📌 <b>多选题要点：</b>必须全部选对才得分。<br><br>✅ <b>本题正确答案：</b>'+a+'（共'+parts+'个选项）<br><br>💡 <b>方法：</b>先排除明显错误的，再确认每个正确选项。<br><br>📖 参考教材相关章节加深理解。';
+  } else if(t==='fill'){
+    return '📌 <b>填空技巧：</b>注意大小写和拼写！<br><br>✅ <b>答案：</b>「'+a+'」<br><br>💡 <b>举一反三：</b>把这个关键词和相关概念一起记忆。<br><br>📝 考试中填空常考基本函数名和关键字。';
+  } else {
+    return '📌 <b>编程题要点：</b><br>① 先理解题目要求<br>② 确定使用的语法（循环/分支/函数等）<br>③ 注意缩进和变量命名<br><br>💡 参考答案只是其中一种写法，功能正确即可。<br><br>📝 建议动手在IDLE中运行验证。';
+  }
+}
+</script>
+</body>
+</html>

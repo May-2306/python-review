@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>国际贸易学 期末复习</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --bg: #f0f4f8; --surface: rgba(255,255,255,0.85); --surface2:#fff;
+    --text:#1c1c1e; --text2:#3a3a3c; --text3:#8e8e93;
+    --border:rgba(60,60,67,0.08); --radius:14px; --radius-sm:10px;
+    --blue:#007aff; --green:#34c759; --orange:#ff9500; --red:#ff3b30; --purple:#af52de; --teal:#5ac8fa;
+    --safe-bottom:env(safe-area-inset-bottom,16px);
+  }
+  body {
+    font-family:'Inter',-apple-system,sans-serif;
+    background:var(--bg); color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    padding:0 0 calc(90px + var(--safe-bottom));
+  }
+  .status-bar {
+    background:var(--surface); backdrop-filter:blur(40px) saturate(150%);
+    -webkit-backdrop-filter:blur(40px) saturate(150%);
+    border-bottom:0.5px solid var(--border);
+    padding:14px 20px 10px; position:sticky; top:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .status-bar h1 { font-size:20px; font-weight:700; background:linear-gradient(135deg,#007aff,#5856d6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .status-bar .badge { background:var(--blue); color:#fff; font-size:11px; font-weight:600; padding:3px 12px; border-radius:20px; }
+  .hero { padding:16px 20px 8px; }
+  .hero h2 { font-size:28px; font-weight:800; letter-spacing:-0.5px; line-height:1.2; }
+  .hero h2 span { color:var(--blue); }
+  .hero p { font-size:13px; color:var(--text3); margin-top:2px; }
+  .hero .exam-info { font-size:12px; color:var(--text3); margin-top:4px; display:flex; gap:8px; flex-wrap:wrap; }
+  .hero .exam-info span { background:var(--surface); padding:2px 10px; border-radius:6px; border:0.5px solid var(--border); }
+
+  .dash { padding:0 20px 12px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .dash-card {
+    background:var(--surface); backdrop-filter:blur(20px);
+    border-radius:var(--radius); padding:14px 16px;
+    border:0.5px solid var(--border); text-align:center;
+  }
+  .dash-card .num { font-size:26px; font-weight:800; line-height:1.2; }
+  .dash-card .label { font-size:11px; color:var(--text3); font-weight:500; margin-top:2px; }
+  .dash-card.blue .num { color:var(--blue); }
+  .dash-card.green .num { color:var(--green); }
+  .dash-card.orange .num { color:var(--orange); }
+  .dash-card.red .num { color:var(--red); }
+
+  .cd-row { display:flex; gap:6px; padding:0 20px 12px; }
+  .cd-item { flex:1; background:var(--surface); backdrop-filter:blur(20px); border-radius:10px; padding:8px 0; text-align:center; border:0.5px solid var(--border); }
+  .cd-num { font-size:20px; font-weight:800; color:var(--blue); line-height:1.2; }
+  .cd-label { font-size:10px; font-weight:500; color:var(--text3); }
+
+  .prog-wrap { padding:0 20px 6px; }
+  .prog-hdr { display:flex; justify-content:space-between; font-size:12px; color:var(--text3); margin-bottom:4px; font-weight:500; }
+  .prog-track { height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+  .prog-fill { height:100%; background:linear-gradient(90deg,var(--blue),var(--green)); border-radius:3px; transition:width .6s; width:0%; }
+
+  .day-bar { padding:0 20px 4px; position:sticky; top:52px; z-index:90; background:var(--bg); }
+  .day-scroll { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding:2px 0; }
+  .day-scroll::-webkit-scrollbar { display:none; }
+  .day-c {
+    flex-shrink:0; padding:7px 14px; border-radius:18px;
+    background:var(--surface); border:0.5px solid var(--border);
+    cursor:pointer; font-size:12px; font-weight:500; color:var(--text3);
+    transition:all .2s; white-space:nowrap; user-select:none;
+  }
+  .day-c.active { background:var(--blue); color:#fff; border-color:var(--blue); }
+  .day-c .q-count { font-size:10px; opacity:.6; }
+
+  .content { padding:0 16px; }
+  .day-sec { display:none; }
+  .day-sec.active { display:block; animation:fade .35s; }
+  @keyframes fade { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+  .topic-strip { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:10px; }
+  .topic-tag { font-size:11px; padding:4px 10px; border-radius:8px; background:var(--bg); color:var(--text3); border:0.5px solid var(--border); }
+
+  .ex {
+    background:var(--surface2); border-radius:var(--radius);
+    padding:16px 16px 14px; margin-bottom:10px;
+    border:0.5px solid var(--border);
+  }
+  .ex-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .ex-type {
+    font-size:10px; font-weight:700; padding:2px 10px; border-radius:5px;
+    letter-spacing:.3px; text-transform:uppercase;
+  }
+  .t-choice { background:#e8f2ff; color:var(--blue); }
+  .t-multi { background:#fff3e0; color:var(--orange); }
+  .t-judge { background:#ffe8e6; color:var(--red); }
+  .t-short { background:#e8f8ed; color:var(--green); }
+  .t-calc { background:#f0e6ff; color:var(--purple); }
+  .t-case { background:#e8f8fd; color:var(--teal); }
+
+  .ex-q { font-size:14px; font-weight:500; line-height:1.7; margin-bottom:10px; }
+  .ex-q .hl { color:var(--blue); font-weight:600; }
+
+  .opts { display:flex; flex-direction:column; gap:5px; margin-bottom:8px; }
+  .opts label {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px; background:var(--bg); border-radius:10px;
+    cursor:pointer; font-size:13.5px; font-weight:400;
+    transition:all .15s; border:1.5px solid transparent;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .opts label:active { transform:scale(.97); }
+  .opts input[type="radio"] {
+    appearance:none; -webkit-appearance:none;
+    width:18px; height:18px; border:2px solid var(--text3); border-radius:50%;
+    flex-shrink:0; transition:all .2s;
+  }
+  .opts input[type="radio"]:checked { border-color:var(--blue); background:var(--blue); box-shadow:inset 0 0 0 3.5px #fff; }
+  .opts label.correct { background:#e8f8ed !important; border-color:var(--green) !important; }
+  .opts label.wrong { background:#ffe8e6 !important; border-color:var(--red) !important; }
+  .opts label.correct-ans { background:#e8f8ed !important; border-color:var(--green) !important; opacity:.7; }
+  .opts input[disabled] { opacity:.5; }
+
+  .ex-textarea {
+    width:100%; padding:10px 14px; border:1.5px solid var(--border);
+    border-radius:10px; font-size:13.5px; font-family:'Inter',sans-serif;
+    background:var(--bg); outline:none; transition:all .2s;
+    resize:vertical; min-height:60px; margin-bottom:8px; line-height:1.6;
+  }
+  .ex-textarea:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(0,122,255,.12); }
+
+  .ex-actions { display:flex; gap:6px; flex-wrap:wrap; }
+  .ex-btn {
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:12px; font-weight:600; padding:6px 14px; border-radius:16px;
+    border:none; cursor:pointer; transition:all .2s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .ex-btn:active { transform:scale(.94); }
+  .ex-btn.primary { background:var(--blue); color:#fff; }
+  .ex-btn.ghost { background:var(--bg); color:var(--text3); }
+  .ex-btn.ghost.showing { background:var(--blue); color:#fff; }
+  .ex-btn.green { background:var(--green); color:#fff; }
+
+  .ex.wrong-ans { border-left:4px solid var(--red); }
+
+  .fb {
+    font-size:13px; font-weight:600; padding:7px 12px; border-radius:8px;
+    margin-bottom:6px; display:none;
+  }
+  .fb.show { display:block; animation:fade .2s; }
+  .fb.correct { background:#e8f8ed; color:#1a5c36; }
+  .fb.wrong { background:#ff3b30; color:#fff; font-weight:700; }
+
+  .ans-box {
+    display:none; margin-top:8px; padding:12px 14px;
+    background:#e8f8ed; border-radius:10px; font-size:13px; line-height:1.6;
+  }
+  .ans-box.show { display:block; animation:fade .2s; }
+  .ans-box .al { font-size:10px; font-weight:700; color:var(--green); margin-bottom:3px; text-transform:uppercase; }
+  .ans-box .at { color:#1a5c36; font-weight:500; margin-bottom:4px; }
+  .ans-box .ae { font-size:12px; color:#3a7d4e; border-top:0.5px solid rgba(52,199,89,.2); padding-top:6px; margin-top:4px; }
+
+  .fu-btn {
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:11px; font-weight:600; padding:4px 12px; border-radius:12px;
+    border:1.5px solid var(--purple); background:transparent; color:var(--purple);
+    cursor:pointer; transition:all .2s; margin-top:8px;
+  }
+  .fu-btn:active { transform:scale(.93); }
+  .fu-btn.showing { background:var(--purple); color:#fff; }
+  .fu-box {
+    display:none; margin-top:8px; padding:12px 14px;
+    background:#f0e6ff; border-radius:10px; font-size:13px; line-height:1.6;
+  }
+  .fu-box.show { display:block; animation:fade .2s; }
+  .fu-box .fl { font-size:10px; font-weight:700; color:var(--purple); margin-bottom:4px; text-transform:uppercase; }
+  .fu-box .fc { color:#4a2d6e; }
+
+  .tab-bar {
+    position:fixed; bottom:0; left:0; right:0;
+    background:var(--surface); backdrop-filter:blur(40px);
+    border-top:0.5px solid var(--border);
+    padding:6px 16px calc(6px + var(--safe-bottom));
+    display:flex; justify-content:space-around; z-index:200;
+  }
+  .tab-item {
+    display:flex; flex-direction:column; align-items:center; gap:1px;
+    font-size:10px; font-weight:500; color:var(--text3); cursor:pointer; padding:4px 12px;
+  }
+  .tab-item .ic { font-size:20px; line-height:1; }
+  .tab-item.active { color:var(--blue); }
+  ::-webkit-scrollbar{width:2px;height:2px}
+  ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.1)}
+  @media(max-width:380px){ .hero h2{font-size:24px;} }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <h1>🌍 国际贸易学</h1>
+  <span class="badge" id="totalBadge">0题</span>
+</div>
+
+<div class="hero">
+  <h2>期末<span>冲刺</span></h2>
+  <p>郑州西亚斯学院 · 国际经济与贸易</p>
+  <div class="exam-info">
+    <span>📖 金泽虎《国际贸易学》第1-12章</span>
+    <span>📝 闭卷 · 2小时</span>
+  </div>
+</div>
+
+<div class="dash">
+  <div class="dash-card blue"><div class="num" id="dScore">0</div><div class="label">✅ 答对</div></div>
+  <div class="dash-card red"><div class="num" id="dWrong">0</div><div class="label">❌ 答错</div></div>
+  <div class="dash-card green"><div class="num" id="dRate">0%</div><div class="label">📊 正确率</div></div>
+  <div class="dash-card orange"><div class="num" id="dDone">0</div><div class="label">📝 已做</div></div>
+</div>
+
+<div class="cd-row">
+  <div class="cd-item"><div class="cd-num" id="cdD">-</div><div class="cd-label">天</div></div>
+  <div class="cd-item"><div class="cd-num" id="cdH">-</div><div class="cd-label">小时</div></div>
+  <div class="cd-item"><div class="cd-num" id="cdM">-</div><div class="cd-label">分钟</div></div>
+  <div class="cd-item"><div class="cd-num" id="cdS">-</div><div class="cd-label">秒</div></div>
+</div>
+
+<div class="prog-wrap">
+  <div class="prog-hdr"><span>📖 复习进度</span><span id="progText">0/5天</span></div>
+  <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+</div>
+
+<div class="day-bar">
+  <div class="day-scroll" id="dayScroll"></div>
+</div>
+
+<div class="content" id="content"></div>
+
+<div class="tab-bar">
+  <div class="tab-item active" onclick="document.querySelector('.day-c.active')?.click()"><span class="ic">📖</span><span>复习</span></div>
+  <div class="tab-item" onclick="window.scrollTo({top:0,behavior:'smooth'})"><span class="ic">⬆️</span><span>顶部</span></div>
+</div>
+
+<script>
+const NOW = new Date(), EXAM = new Date(2026,5,22);
+let score = JSON.parse(localStorage.getItem('tradeScore')||'{"ok":0,"no":0}');
+function saveScore(){ localStorage.setItem('tradeScore',JSON.stringify(score)); }
+function updateDash(){
+  const t=score.ok+score.no;
+  document.getElementById('dScore').textContent=score.ok;
+  document.getElementById('dWrong').textContent=score.no;
+  document.getElementById('dRate').textContent=t?Math.round(score.ok/t*100)+'%':'0%';
+  document.getElementById('dDone').textContent=t;
+}
+updateDash();
+
+const daysData = [
+  {d:1,date:'6月18日',ic:'🌏',ti:'国际贸易基础理论',cs:['第1-4章：基础概念与古典理论'],
+    ts:['国际贸易的含义与分类','对外贸易依存度','比较成本理论（李嘉图）','贸易竞争力指数','要素禀赋理论（H-O理论）'],
+    ex:[
+      {t:'choice',l:'单选',q:'国际贸易是指（）之间的商品和服务的交换活动。',o:['A. 不同国家','B. 同一国家','C. 同一地区','D. 同一企业'],a:'A. 不同国家',e:'国际贸易（International Trade）是指不同国家和地区之间进行的商品、服务和生产要素的交换活动。'},
+      {t:'choice',l:'单选',q:'李嘉图比较成本理论的核心观点是（）。',o:['A. 各国应生产所有产品','B. 各国应生产绝对成本最低的产品','C. 各国应生产成本相对较低的产品','D. 各国应自给自足'],a:'C. 各国应生产成本相对较低的产品',e:'比较成本理论认为各国应生产"两优相权取其重，两劣相权取其轻"的产品，即机会成本较低的产品。'},
+      {t:'choice',l:'单选',q:'对外贸易依存度的计算公式是（）。',o:['A. 进出口总额/GDP','B. 出口额/GDP','C. 进口额/GDP','D. 净出口/GDP'],a:'A. 进出口总额/GDP',e:'对外贸易依存度 = （进口总额 + 出口总额）/ GDP × 100%，反映一国经济对对外贸易的依赖程度。'},
+      {t:'choice',l:'单选',q:'要素禀赋理论（H-O理论）认为国际贸易的基础是（）。',o:['A. 技术差异','B. 要素禀赋差异','C. 规模经济','D. 消费偏好差异'],a:'B. 要素禀赋差异',e:'H-O理论认为各国要素禀赋（劳动、资本、土地等）不同导致生产要素价格差异，进而影响商品价格和贸易格局。'},
+      {t:'choice',l:'单选',q:'贸易竞争力指数（TC指数）的取值范围是（）。',o:['A. 0到1','B. -1到1','C. 0到100','D. -∞到+∞'],a:'B. -1到1',e:'TC指数 = (出口-进口)/(出口+进口)。越接近1表示竞争力越强，越接近-1表示竞争力越弱。'},
+      {t:'multi',l:'多选',q:'国际贸易按商品流向可分为（）。',o:['A. 出口贸易','B. 进口贸易','C. 转口贸易','D. 过境贸易','E. 服务贸易'],a:'A. 出口贸易, B. 进口贸易, C. 转口贸易, D. 过境贸易',e:'按商品流向分为出口、进口、转口、过境贸易。服务贸易是按商品形态分类的。'},
+      {t:'judge',l:'判断',q:'绝对优势理论是亚当·斯密提出的，而比较优势理论是大卫·李嘉图提出的。',o:['正确','错误'],a:'正确',e:'绝对优势理论（斯密）：各国应生产绝对成本最低的产品。比较优势理论（李嘉图）：各国应生产成本相对较低的产品。两者都是古典贸易理论。'},
+      {t:'judge',l:'判断',q:'一国的对外贸易依存度越高越好。',o:['正确','错误'],a:'错误',e:'依存度过高说明经济对外依赖性强，易受国际市场波动影响。适度即可，过高或过低都不好。'},
+      {t:'short',l:'简答',q:'简述比较成本理论的主要内容及其意义。',a:'比较成本理论（李嘉图）：各国应集中生产并出口其机会成本较低（即相对优势）的商品，进口其机会成本较高的商品。\n\n意义：①发展了斯密的绝对优势理论，解释了国际贸易的利益来源；②为自由贸易政策提供了理论基础；③说明即使一国在所有产品上都没有绝对优势，仍可通过专业化生产相对优势产品获益。'},
+      {t:'calc',l:'计算',q:'已知A国2024年GDP为100万亿元，出口总额20万亿元，进口总额18万亿元。请计算：\n①A国的对外贸易依存度\n②A国的贸易竞争力指数\n（请写出计算过程）',a:'①对外贸易依存度 = (20+18)/100 × 100% = 38%\n\n②TC指数 = (20-18)/(20+18) = 2/38 ≈ 0.053\n\nA国的对外贸易依存度为38%，TC指数为0.053（竞争力较弱）。'},
+    ]},
+  {d:2,date:'6月19日',ic:'📊',ti:'贸易理论与政策',cs:['第5-7章：现代贸易理论与保护理论'],
+    ts:['产品生命周期理论（弗农）','产业内贸易理论','国家竞争优势理论（波特）','新贸易理论','重商主义','李斯特的幼稚产业保护理论','超保护贸易理论'],
+    ex:[
+      {t:'choice',l:'单选',q:'产品生命周期理论是由（）提出的。',o:['A. 李嘉图','B. 弗农','C. 波特','D. 克鲁格曼'],a:'B. 弗农',e:'弗农（Vernon）提出产品生命周期理论，将产品生命周期分为创新阶段、成熟阶段和标准化阶段。'},
+      {t:'choice',l:'单选',q:'产业内贸易理论认为，同类产品之间的贸易主要源于（）。',o:['A. 要素禀赋差异','B. 规模经济和产品差异化','C. 绝对成本差异','D. 技术差距'],a:'B. 规模经济和产品差异化',e:'产业内贸易指同一产业内同类产品的双向贸易，主要原因是规模经济、产品差异化和消费者偏好多样化。'},
+      {t:'choice',l:'单选',q:'迈克尔·波特的国家竞争优势理论中，核心分析工具是（）。',o:['A. SWOT分析','B. 钻石模型','C. PEST分析','D. 五力模型'],a:'B. 钻石模型',e:'波特的"钻石模型"包括四个关键要素：生产要素、需求条件、相关支持产业、企业战略与竞争。'},
+      {t:'choice',l:'单选',q:'重商主义的核心观点是（）。',o:['A. 鼓励进口','B. 贸易顺差有利于国家积累财富','C. 自由贸易','D. 比较优势'],a:'B. 贸易顺差有利于国家积累财富',e:'重商主义（15-17世纪）认为金银是财富的唯一形式，主张出口大于进口，实现贸易顺差以积累财富。'},
+      {t:'multi',l:'多选',q:'波特钻石模型的四个关键要素包括（）。',o:['A. 生产要素','B. 需求条件','C. 相关与支持产业','D. 企业战略与竞争','E. 政府政策'],a:'A. 生产要素, B. 需求条件, C. 相关与支持产业, D. 企业战略与竞争',e:'钻石模型四大要素：生产要素、需求条件、相关与支持产业、企业战略与竞争。政府和机遇是辅助因素。'},
+      {t:'multi',l:'多选',q:'以下属于保护贸易理论的有（）。',o:['A. 重商主义','B. 李斯特幼稚产业保护论','C. 超保护贸易理论','D. 比较成本理论','E. 战略性贸易政策理论'],a:'A. 重商主义, B. 李斯特幼稚产业保护论, C. 超保护贸易理论, E. 战略性贸易政策理论',e:'比较成本理论属于自由贸易理论。保护贸易理论包括重商主义、幼稚产业保护论、超保护贸易理论和战略性贸易政策。'},
+      {t:'judge',l:'判断',q:'产品生命周期理论认为，新产品通常在发展中国家首先被开发和生产。',o:['正确','错误'],a:'错误',e:'产品生命周期理论认为新产品通常在发达国家（如美国）首先被开发，然后随着技术成熟生产转移到发展中国家。'},
+      {t:'judge',l:'判断',q:'李斯特的幼稚产业保护理论主张对所有产业都进行永久性保护。',o:['正确','错误'],a:'错误',e:'李斯特主张对具有发展潜力的幼稚产业进行暂时性保护，而非永久保护所有产业。保护的目的是为了将来不再需要保护。'},
+      {t:'short',l:'简答',q:'简述李斯特幼稚产业保护理论的主要内容。',a:'①核心观点：一国应对有发展潜力但暂时无法与外国竞争的幼稚产业实施保护，待其成长到具有国际竞争力后再取消保护。\n\n②保护对象：有发展前途但尚不成熟的工业产业。\n\n③保护手段：主要是关税保护。\n\n④保护期限：暂时性的，不是永久保护。\n\n⑤理论意义：为后发国家实施贸易保护提供了理论依据。'},
+      {t:'short',l:'简答',q:'简述国家竞争优势理论（钻石模型）的主要内容。',a:'波特认为一国的产业竞争力取决于四个关键要素：\n\n①生产要素：包括自然资源、人力资源、知识资源、资本等。\n\n②需求条件：国内市场的规模和成熟度。\n\n③相关与支持产业：上下游产业的竞争力。\n\n④企业战略与结构：企业的组织形式和竞争环境。\n\n此外，政府和机会是两个辅助因素。四要素相互影响，共同决定国家的竞争优势。'},
+    ]},
+  {d:3,date:'6月20日',ic:'🛡️',ti:'贸易政策措施',cs:['第8-9章：关税与非关税壁垒'],
+    ts:['关税的含义、特征、作用、种类','关税的征收方法（从价税、从量税等）','非关税壁垒','技术性贸易壁垒（TBT）','绿色贸易壁垒的表现形式','出口管制'],
+    ex:[
+      {t:'choice',l:'单选',q:'关税最基本的特征是（）。',o:['A. 自愿性','B. 强制性','C. 有偿性','D. 灵活性'],a:'B. 强制性',e:'关税具有强制性（国家强制征收）、无偿性（国家不直接偿还）和固定性（按法定税率征收）三个基本特征。'},
+      {t:'choice',l:'单选',q:'按征税对象分类，关税可分为（）。',o:['A. 进口税、出口税、过境税','B. 从价税、从量税','C. 优惠关税、普通关税','D. 保护关税、财政关税'],a:'A. 进口税、出口税、过境税',e:'按征税对象分：进口税（最主要）、出口税、过境税。按征税标准分：从价税、从量税、混合税等。'},
+      {t:'choice',l:'单选',q:'从价税的计算公式是（）。',o:['A. 税额=商品数量×单位从量税','B. 税额=商品完税价格×从价税率','C. 税额=商品重量×税率','D. 税额=商品体积×税率'],a:'B. 税额=商品完税价格×从价税率',e:'从价税以商品价格为征税标准，公式：税额 = 完税价格 × 从价税率。从量税以数量/重量/体积为征税标准。'},
+      {t:'choice',l:'单选',q:'以下属于非关税壁垒的是（）。',o:['A. 进口关税','B. 进口配额','C. 出口退税','D. 增值税'],a:'B. 进口配额',e:'非关税壁垒包括进口配额、许可证、技术壁垒、绿色壁垒等。关税是关税壁垒，不是非关税壁垒。'},
+      {t:'choice',l:'单选',q:'技术性贸易壁垒（TBT）的主要形式不包括（）。',o:['A. 技术法规','B. 技术标准','C. 合格评定程序','D. 进口关税'],a:'D. 进口关税',e:'TBT主要形式包括技术法规、技术标准、合格评定程序、包装标签要求等。关税不属于技术性贸易壁垒。'},
+      {t:'multi',l:'多选',q:'关税按照征税标准可分为（）。',o:['A. 从价税','B. 从量税','C. 混合税','D. 选择税','E. 财政关税'],a:'A. 从价税, B. 从量税, C. 混合税, D. 选择税',e:'按征税标准分：从价税（按价格）、从量税（按数量）、混合税（从价+从量）、选择税（选较高者）。财政关税是按征收目的分类的。'},
+      {t:'multi',l:'多选',q:'绿色贸易壁垒的表现形式包括（）。',o:['A. 环境标志制度','B. 绿色包装制度','C. 绿色卫生检疫制度','D. 关税配额','E. 环境技术标准'],a:'A. 环境标志制度, B. 绿色包装制度, C. 绿色卫生检疫制度, E. 环境技术标准',e:'绿色贸易壁垒包括：环境标志、绿色包装、绿色检疫、环境技术标准等。关税配额属于关税措施。'},
+      {t:'judge',l:'判断',q:'非关税壁垒比关税壁垒具有更强的隐蔽性和灵活性。',o:['正确','错误'],a:'正确',e:'非关税壁垒（如技术标准、绿色壁垒等）通常以法律法规、技术标准的形式出现，比关税更具隐蔽性和灵活性，也更难谈判。'},
+      {t:'judge',l:'判断',q:'出口管制只包括对军事产品的限制出口。',o:['正确','错误'],a:'错误',e:'出口管制不仅包括军事产品，还包括高科技产品（如芯片、人工智能）、战略物资等。管制方式有出口许可证、出口配额等。'},
+      {t:'short',l:'简答',q:'简述关税的主要作用。',a:'①财政收入作用：关税是政府财政收入的重要来源之一。\n\n②保护本国产业：通过征收进口关税提高进口商品价格，保护国内同类产业。\n\n③调节经济：调整进出口结构，引导资源合理配置。\n\n④维护国家利益：作为贸易谈判的筹码，维护国家经济安全和利益。'},
+    ]},
+  {d:4,date:'6月21日',ic:'🏛️',ti:'国际规则与一体化',cs:['第10-12章：WTO与区域经济一体化'],
+    ts:['世界贸易组织（WTO）的基本原则','区域经济一体化的含义','区域经济一体化的组织形式','自由贸易区/关税同盟/共同市场'],
+    ex:[
+      {t:'choice',l:'单选',q:'世界贸易组织（WTO）最基本的原则是（）。',o:['A. 最惠国待遇原则','B. 国民待遇原则','C. 透明度原则','D. 公平贸易原则'],a:'A. 最惠国待遇原则',e:'最惠国待遇原则是WTO的基石原则，要求一成员给予另一成员的优惠待遇必须无条件地给予所有其他成员。'},
+      {t:'choice',l:'单选',q:'区域经济一体化中，经济一体化的最高组织形式是（）。',o:['A. 自由贸易区','B. 关税同盟','C. 共同市场','D. 完全经济一体化'],a:'D. 完全经济一体化',e:'一体化程度由低到高：优惠贸易安排→自由贸易区→关税同盟→共同市场→经济联盟→完全经济一体化。'},
+      {t:'choice',l:'单选',q:'自由贸易区与关税同盟的主要区别在于（）。',o:['A. 是否取消内部关税','B. 是否实行统一对外关税','C. 是否允许生产要素自由流动','D. 是否协调经济政策'],a:'B. 是否实行统一对外关税',e:'自由贸易区：取消内部关税，但各成员保持独立对外关税。关税同盟：取消内部关税 + 统一对外关税。'},
+      {t:'choice',l:'单选',q:'WTO的国民待遇原则主要适用于（）。',o:['A. 进口产品和本国产品之间','B. 不同国家的进口产品之间','C. 出口产品之间','D. 服务贸易领域'],a:'A. 进口产品和本国产品之间',e:'国民待遇指进口产品在进入一国后，应享有与该国本国产品同等的待遇。最惠国待遇针对的是不同国家的进口产品之间。'},
+      {t:'multi',l:'多选',q:'世界贸易组织的基本原则包括（）。',o:['A. 最惠国待遇原则','B. 国民待遇原则','C. 透明度原则','D. 自由贸易原则','E. 公平竞争原则'],a:'A. 最惠国待遇原则, B. 国民待遇原则, C. 透明度原则, D. 自由贸易原则, E. 公平竞争原则',e:'WTO五大基本原则：最惠国待遇、国民待遇、透明度、自由贸易、公平竞争。'},
+      {t:'multi',l:'多选',q:'区域经济一体化的组织形式包括（）。',o:['A. 自由贸易区','B. 关税同盟','C. 共同市场','D. 经济联盟','E. 完全经济一体化'],a:'A. 自由贸易区, B. 关税同盟, C. 共同市场, D. 经济联盟, E. 完全经济一体化',e:'由低到高：优惠贸易安排→自由贸易区→关税同盟→共同市场→经济联盟→完全经济一体化。'},
+      {t:'judge',l:'判断',q:'区域经济一体化对成员国只有贸易创造效应，没有贸易转移效应。',o:['正确','错误'],a:'错误',e:'区域经济一体化既有贸易创造效应（内部贸易增加），也有贸易转移效应（从低成本非成员转向高成本成员进口）。净福利取决于两者的比较。'},
+      {t:'judge',l:'判断',q:'WTO最惠国待遇原则要求成员国之间实行无差别待遇。',o:['正确','错误'],a:'正确',e:'最惠国待遇要求一成员给予任何其他成员的优惠待遇，必须立即无条件地给予所有其他成员，即非歧视原则。'},
+      {t:'short',l:'简答',q:'简述区域经济一体化的组织形式及其特点。',a:'①优惠贸易安排：成员间降低关税、非关税壁垒\n\n②自由贸易区：取消内部关税，各成员独立对外关税\n\n③关税同盟：取消内部关税 + 统一对外关税\n\n④共同市场：关税同盟 + 生产要素自由流动\n\n⑤经济联盟：共同市场 + 协调经济政策\n\n⑥完全经济一体化：经济联盟 + 统一经济政策（最高形式）\n\n每个阶段的"一体化"程度依次加深。'},
+      {t:'case',l:'案例分析',q:'【案例分析】\n假设A、B、C三国生产某商品的成本分别为10元、12元、15元。A国对该商品征收50%的关税。\n\n①如果A与B组建关税同盟，取消内部关税后A国会从哪国进口？\n②与结盟前相比，A国福利有何变化？',a:'①结盟前：A国对各国征收50%关税后价格：A国10元，B国18元，C国22.5元。A国购买本国产品（10元）。\n\n②结盟后：取消对B国关税，B国价格12元 < A国10元，A国从B国进口。\n\n③福利分析：贸易创造效应（从B国进口比本国生产便宜2元）+ 贸易转移效应（原本可从C国以10元进口...但本题中原先A国就是自产10元，实际是贸易创造为主）。'},
+    ]},
+  {d:5,date:'6月22日',ic:'🏆',ti:'综合模拟',cs:['第1-12章 综合'],
+    ts:['🔥 高频考点回顾','📌 核心理论对比记忆','⚠️ 常见易混概念辨析','📝 全真模拟练习'],
+    ex:[
+      {t:'choice',l:'单选',q:'战略性贸易政策理论认为，政府可以通过（）帮助本国企业获得国际竞争优势。',o:['A. 自由贸易','B. 补贴和保护','C. 放松管制','D. 取消关税'],a:'B. 补贴和保护',e:'战略性贸易政策理论认为在不完全竞争和规模经济条件下，政府可以通过补贴、关税等政策帮助本国企业获得竞争优势。'},
+      {t:'choice',l:'单选',q:'超保护贸易理论产生于（）时期。',o:['A. 15-17世纪','B. 18世纪','C. 19世纪','D. 20世纪30年代'],a:'D. 20世纪30年代',e:'超保护贸易理论（凯恩斯主义）产生于1929-1933年大萧条时期，主张国家干预对外贸易，实现贸易顺差以增加有效需求。'},
+      {t:'choice',l:'单选',q:'以下不属于技术性贸易壁垒措施的是（）。',o:['A. 技术法规','B. 进口配额','C. 合格评定程序','D. 包装和标签要求'],a:'B. 进口配额',e:'进口配额属于数量限制型的非关税壁垒，不属于技术性贸易壁垒。技术性壁垒以技术标准、法规等形式出现。'},
+      {t:'choice',l:'单选',q:'新贸易理论认为，当代国际贸易的基础之一是（）。',o:['A. 比较优势','B. 要素禀赋','C. 规模经济','D. 绝对优势'],a:'C. 规模经济',e:'新贸易理论（克鲁格曼为代表）认为规模经济和产品差异化是当代国际贸易的重要原因，解释了为什么相似国家之间会有大量贸易。'},
+      {t:'multi',l:'多选',q:'以下属于自由贸易理论的有（）。',o:['A. 绝对优势理论','B. 比较优势理论','C. 要素禀赋理论','D. 重商主义','E. 幼稚产业保护理论'],a:'A. 绝对优势理论, B. 比较优势理论, C. 要素禀赋理论',e:'重商主义和幼稚产业保护理论属于保护贸易理论。自由贸易理论包括斯密的绝对优势、李嘉图的比较优势、H-O要素禀赋理论等。'},
+      {t:'judge',l:'判断',q:'战略性贸易政策理论主张政府应完全不干预对外贸易。',o:['正确','错误'],a:'错误',e:'恰恰相反！战略性贸易政策理论主张政府应积极干预，通过补贴、保护等政策帮助本国战略产业获得竞争优势。'},
+      {t:'judge',l:'判断',q:'绿色贸易壁垒是国际贸易中一种合法的贸易保护手段。',o:['正确','错误'],a:'错误',e:'绿色贸易壁垒以环境保护为名行贸易保护之实，在WTO框架下具有一定的合法性争议。虽然"绿色"听起来合理，但过度使用会被视为变相的贸易保护。'},
+      {t:'short',l:'简答',q:'试比较绝对优势理论与比较优势理论的区别。',a:'①提出者不同：绝对优势（斯密）vs 比较优势（李嘉图）\n\n②核心观点不同：\n- 绝对优势：各国应生产绝对成本最低的产品\n- 比较优势：各国应生产成本相对较低（机会成本小）的产品\n\n③适用范围不同：\n- 绝对优势无法解释一国在所有产品上都没有绝对优势时为何还能参与贸易\n- 比较优势弥补了这一缺陷，说明"两优相权取其重，两劣相权取其轻"\n\n④比较优势是绝对优势的发展和完善，是国际贸易理论的基石。'},
+      {t:'calc',l:'计算',q:'某国2024年数据：GDP=80万亿元，出口=15万亿元，进口=12万亿元。\n①计算对外贸易依存度和TC指数\n②判断该国贸易竞争力',a:'①对外贸易依存度 = (15+12)/80 = 33.75%\n②TC指数 = (15-12)/(15+12) = 3/27 ≈ 0.111\n\n判断：TC指数为0.111，大于0但小于0.3，说明该国贸易竞争力较弱但处于顺差状态。'},
+      {t:'case',l:'案例分析',q:'【案例分析】\n2023年中国新能源汽车出口大幅增长，成为全球最大出口国。请运用所学国际贸易理论分析：\n①中国新能源汽车产业的优势来源（至少运用2个理论）\n②可能面临的贸易壁垒及应对措施',a:'①理论分析：\n- 国家竞争优势理论（钻石模型）：中国拥有完善的新能源汽车产业链（相关支持产业）、庞大的国内市场（需求条件）、政策支持（政府辅助）\n- 比较成本理论：中国在电池、零部件生产上有成本优势\n- 产品生命周期理论：新能源汽车在中国已进入成熟阶段，开始大规模出口\n\n②贸易壁垒及应对：\n- 关税壁垒：部分国家提高新能源汽车关税→加快海外建厂\n- 技术性贸易壁垒：电池环保标准、碳足迹要求→提升技术标准\n- 绿色贸易壁垒：绿色标签要求→加强ESG认证\n\n应对措施：提升自主创新能力、多元化市场布局、加强国际合作。'},
+    ]},
+];
+
+saveScore();updateDash();
+let totalQ=0;daysData.forEach(d=>totalQ+=d.ex.length);
+document.getElementById('totalBadge').textContent=totalQ+'题';
+function upCD(){const d=EXAM-NOW;if(d<=0){['cdD','cdH','cdM','cdS'].forEach(i=>document.getElementById(i).textContent='0');return;}
+document.getElementById('cdD').textContent=Math.floor(d/86400000)+'';
+document.getElementById('cdH').textContent=String(Math.floor((d%86400000)/3600000)).padStart(2,'0');
+document.getElementById('cdM').textContent=String(Math.floor((d%3600000)/60000)).padStart(2,'0');
+document.getElementById('cdS').textContent=String(Math.floor((d%60000)/1000)).padStart(2,'0');}
+upCD();setInterval(upCD,1000);
+const sc=document.getElementById('dayScroll');let sh='';
+daysData.forEach((d,i)=>{sh+=`<div class="day-c ${i===0?'active':''}" data-i="${i}">${d.ic} ${d.ti} <span class="q-count">${d.ex.length}题</span></div>`;});
+sc.innerHTML=sh;
+const ct=document.getElementById('content');let ch='';
+daysData.forEach((d,di)=>{
+  ch+=`<div class="day-sec ${di===0?'active':''}" data-i="${di}"><div class="topic-strip">${d.cs.map(c=>`<span class="topic-tag">${c}</span>`).join('')}</div>`;
+  d.ex.forEach((ex,ei)=>{
+    const id='e'+di+'-'+ei;const isAuto=ex.t==='choice'||ex.t==='judge';
+    ch+=`<div class="ex"><div class="ex-head"><span class="ex-type t-${ex.t}">${ex.l}</span></div><div class="ex-q">${ex.q}</div>`;
+    if(ex.o){
+      ch+=`<div class="opts" data-id="${id}" data-ans="${ex.a.replace(/"/g,'&quot;')}">`;
+      ex.o.forEach((opt,oi)=>ch+=`<label${isAuto?` onclick="cR('${id}',this)"`:''}><input type="radio" name="${id}" value="${opt}"><span>${opt}</span></label>`);
+      ch+=`</div>`;if(!isAuto)ch+=`<div class="ex-actions"><button class="ex-btn primary" onclick="sM('${id}')">✓ 提交</button></div>`;
+    }else{
+      ch+=`<textarea class="ex-textarea" id="a${id}" placeholder="输入答案..." spellcheck="false"></textarea><div class="ex-actions"><button class="ex-btn primary" onclick="sT('${id}')">✓ 提交</button></div>`;
+    }
+    ch+=`<div class="fb" id="fb${id}"></div><div class="ans-box" id="${id}"><div class="al">✅ 参考答案</div><div class="at">${ex.a}</div><div class="ae">💡 ${ex.e}</div>
+    <button class="fu-btn" onclick="fu('${id}')">🤔 追问详解</button><div class="fu-box" id="fu${id}"><div class="fl">📖 详细解析</div><div class="fc">${ex.f||genFu(ex)}</div></div></div></div>`;
+  });ch+=`</div>`;
+});
+ct.innerHTML=ch;
+function upP(){let done=0;daysData.forEach(d=>{const m=parseInt(d.date.match(/(\d+)月/)[1])-1,dd=parseInt(d.date.match(/(\d+)日/)[1]);if(new Date(2026,m,dd)<NOW)done++;});
+const p=Math.round(done/daysData.length*100);document.getElementById('progFill').style.width=p+'%';document.getElementById('progText').textContent=done+'/'+daysData.length+'天 ('+p+'%)';}
+upP();
+document.querySelectorAll('.day-c').forEach(c=>{c.addEventListener('click',function(){const i=parseInt(this.dataset.i);
+document.querySelectorAll('.day-c').forEach(x=>x.classList.remove('active'));this.classList.add('active');
+document.querySelectorAll('.day-sec').forEach(x=>x.classList.remove('active'));
+document.querySelector('.day-sec[data-i="'+i+'"]').classList.add('active');window.scrollTo({top:0,behavior:'smooth'});});});
+function cR(id,label){const div=label.closest('.opts');const ans=div.dataset.ans;const sel=label.querySelector('span').textContent.trim();const fb=document.getElementById('fb'+id);const ok=sel===ans;
+div.querySelectorAll('input').forEach(r=>r.disabled=true);div.querySelectorAll('label').forEach(l=>{if(l.querySelector('span').textContent.trim()===ans)l.classList.add('correct-ans');});
+if(ok){label.classList.add('correct');label.closest('.ex')?.classList.remove('wrong-ans');fb.textContent='✅ 回答正确！';fb.className='fb show correct';score.ok++;}
+else{label.classList.add('wrong');label.closest('.ex')?.classList.add('wrong-ans');fb.textContent='❌ 回答错误';fb.className='fb show wrong';score.no++;}
+saveScore();updateDash();const ab=document.getElementById(id);if(ab)ab.classList.add('show');}
+function sM(id){const div=document.querySelector('.opts[data-id="'+id+'"]');const ans=div.dataset.ans;const fb=document.getElementById('fb'+id);const checked=div.querySelectorAll('input:checked');
+if(!checked.length){fb.textContent='⚠️ 请先选择选项';fb.className='fb show wrong';return;}
+const vals=[];checked.forEach(r=>vals.push(r.value.trim()));div.querySelectorAll('input').forEach(r=>r.disabled=true);
+const parts=ans.split(',').map(s=>s.trim());div.querySelectorAll('label').forEach(l=>{if(parts.includes(l.querySelector('span').textContent.trim()))l.classList.add('correct-ans');});
+const user=vals.join(', ');if(user===ans){fb.textContent='✅ 回答正确！';fb.className='fb show correct';score.ok++;div.closest('.ex')?.classList.remove('wrong-ans');}
+else{fb.textContent='❌ 回答错误，正确答案：'+ans;fb.className='fb show wrong';score.no++;div.closest('.ex')?.classList.add('wrong-ans');}
+saveScore();updateDash();const ab=document.getElementById(id);if(ab)ab.classList.add('show');}
+function sT(id){const ta=document.getElementById('a'+id);const ab=document.getElementById(id);const fb=document.getElementById('fb'+id);if(!ta.value.trim()){fb.textContent='⚠️ 请输入答案再提交';fb.className='fb show wrong';return;}
+fb.textContent='📤 已提交！请对照参考答案检查';fb.className='fb show wrong';fb.style.background='#ff9500';fb.style.color='#fff';ta.disabled=true;if(ab)ab.classList.add('show');}
+function fu(id){const box=document.getElementById('fu'+id);if(!box)return;box.classList.toggle('show');const btn=box.previousElementSibling;if(box.classList.contains('show')){btn.textContent='🙈 收起详解';btn.classList.add('showing');}else{btn.textContent='🤔 追问详解';btn.classList.remove('showing');}}
+function genFu(ex){const t=ex.t,e=ex.e.replace(/<[^>]*>/g,'');if(t==='choice'||t==='judge')return '📌 <b>考点：</b>'+e+'<br><br>💡 注意区分相似概念。';if(t==='short')return '📌 <b>简答技巧：</b>先答核心观点再分点展开。<br><br>💡 按点给分。';if(t==='calc')return '📌 <b>计算步骤：</b>①公式 ②代入 ③结果。<br><br>💡 公式对了有步骤分。';if(t==='case')return '📌 <b>案例分析：</b>①找理论 ②解释 ③结合实际。<br><br>💡 先理论再分析。';return '📌 <b>考点：</b>'+e;}
+</script>
+</body>
+</html>
